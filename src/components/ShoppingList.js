@@ -1,38 +1,49 @@
-import React, { useState } from "react";
-import Item from "./Item";
+import React from 'react';
+import Item from './Item';
 
-function ShoppingList({ items }) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-
-  function handleCategoryChange(event) {
-    // event.target.value will be the value selected by the user
-    setSelectedCategory(event.target.value);
+class ShoppingList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: props.items || [],
+      filter: ''
+    };
   }
 
-  // we want to filter the items to only display the ones based on the selected category
-  const itemsToDisplay = items.filter((item) => {
-    if (selectedCategory === "All") return true;
+  handleFilterChange = (event) => {
+    this.setState({ filter: event.target.value });
+  };
 
-    return item.category === selectedCategory;
-  });
+  getFilteredItems = () => {
+    const { items, filter } = this.state;
+    return filter 
+      ? items.filter(item => item.category === filter)
+      : items;
+  };
 
-  return (
-    <div className="ShoppingList">
-      <div className="Filter">
-        <select name="filter" onChange={handleCategoryChange}>
-          <option value="All">Filter by category</option>
-          <option value="Produce">Produce</option>
-          <option value="Dairy">Dairy</option>
-          <option value="Dessert">Dessert</option>
+  render() {
+    const categories = [...new Set(this.state.items.map(item => item.category))];
+    
+    return (
+      <div>
+        <select
+          value={this.state.filter}
+          onChange={this.handleFilterChange}
+          data-testid="category-filter"
+        >
+          <option value="">All</option>
+          {categories.map(category => (
+            <option key={category} value={category}>{category}</option>
+          ))}
         </select>
+        <ul className="Items">
+          {this.getFilteredItems().map(item => (
+            <Item key={item.id} item={item} />
+          ))}
+        </ul>
       </div>
-      <ul className="Items">
-        {itemsToDisplay.map((item) => (
-          <Item key={item.id} name={item.name} category={item.category} />
-        ))}
-      </ul>
-    </div>
-  );
+    );
+  }
 }
 
 export default ShoppingList;
